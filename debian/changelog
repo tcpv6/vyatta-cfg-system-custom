@@ -1,3 +1,11 @@
+vyatta-cfg-system (0.20.43+vyos1+helium34+mintel1) unstable; urgency=low
+
+  [ Francesco Ciocchetti ]
+  * Increase maximum MTU size on tunnels to 9000
+
+ -- Francesco Ciocchetti <fc@mintel.com>  Thu, 12 May 2016 08:24:19 +0200
+
+
 vyatta-cfg-system (0.20.43+vyos1+helium34) unstable; urgency=low
 
   [ Alex Harpin ]
