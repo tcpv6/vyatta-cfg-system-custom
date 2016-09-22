@@ -30,6 +30,7 @@ use File::Temp qw/ tempfile /;
 my $SYSLOG_CONF  = '/etc/rsyslog.d/vyatta-log.conf';
 my $SYSLOG_TMPL  = "/tmp/rsyslog.conf.XXXXXX";
 my $MESSAGES     = '/var/log/messages';
+my $AUTH         = '/var/log/auth.log';
 my $CONSOLE      = '/dev/console';
 my $LOGROTATE_CFG_DIR = '/opt/vyatta/etc/logrotate';
 
@@ -82,6 +83,7 @@ sub read_config {
     }
 
     # This is a file target so we set size and files
+    $level = 'global' if ($level =~ /defaultauthlog/);
     if ($target =~ m:^/var/log/:) {
         set_target_param($config, $level, $target, 'size');
         set_target_param($config, $level, $target, 'files');
@@ -93,15 +95,19 @@ sub print_outchannel {
     # Force outchannel size to be 1k more than logrotate config to guarantee rotation
     $size = ($size + 5) * 1024;
     print $fh "\$outchannel $channel,$target,$size,/usr/sbin/logrotate ${LOGROTATE_CFG_DIR}/$channel\n";
-    print $fh join( ';', @{ $entries{$target}{selector} } ), " \$$channel\n";
+    print $fh join( ',', @{ $entries{$target}{selector} } ), " \$$channel\n";
 }
 
 my $config = new Vyatta::Config;
 $config->setLevel("system syslog");
 
-read_config( $config, 'global', $MESSAGES );
+# Add auth.log entries
+read_config( $config, 'defaultauthlog', $AUTH );
+add_target_selector( 'auth', $AUTH );
+add_target_selector( 'authpriv.*', $AUTH );
 
 # Default syslog.conf if no global entry
+read_config( $config, 'global', $MESSAGES );
 unless (%entries) {
     add_target_selector( '*.notice', $MESSAGES );
     add_target_selector( 'local7.*', $MESSAGES );
@@ -135,20 +141,23 @@ my ($out, $tempname) = tempfile($SYSLOG_TMPL, UNLINK => 1)
 
 my $files;
 my $size;
+my %channel_map = ( $MESSAGES => 'global',
+                    $AUTH => 'defaultauthlog' );
+
 foreach my $target ( keys %entries ) {
-    if ($target eq $MESSAGES) {
+    if (($target eq $MESSAGES) or ($target eq $AUTH)) {
         $size = get_target_param($target, 'size');
         $files = get_target_param($target, 'files');
-        print_outchannel($out, 'global', $target, $size);
+        print_outchannel($out, $channel_map{$target}, $target, $size);
         system("sudo /opt/vyatta/sbin/vyatta_update_logrotate.pl $files $size 1") == 0
-            or die "Can't genrate global log rotation config: $!";
+            or die "Can't generate $target log rotation config: $!";
     } elsif ($target =~ m:^/var/log/user/:) {
         my $file = basename($target);
         $size = get_target_param($target, 'size');
         $files = get_target_param($target, 'files');
         print_outchannel($out, 'file_' . $file, $target, $size);
         system("sudo /opt/vyatta/sbin/vyatta_update_logrotate.pl $file $files $size 1") == 0
-            or die "Can't genrate global log rotation config: $!";
+            or die "Can't generate $target log rotation config: $!";
     } else {
         print $out join( ';', @{ $entries{$target}{selector} } ), "\t$target\n";
     }
