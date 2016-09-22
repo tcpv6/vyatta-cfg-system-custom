@@ -8,10 +8,10 @@
 
 use strict;
 
-my $cfg_dir = "/opt/vyatta/etc/logrotate";
+my $log_file = "";
+my $log_conf = "";
 my $file = "global";
-my $log_file = "/var/log/messages";
-my $log_conf = "${cfg_dir}/$file";
+my $cfg_dir = "/opt/vyatta/etc/logrotate";
 if ($#ARGV == 3) {
   $file = shift;
   $log_file = "/var/log/user/$file";
@@ -29,14 +29,29 @@ if (!($files =~ m/^\d+$/) || !($size =~ m/^\d+$/)) {
   exit 2;
 }
 
-# just remove it and make a new one below
-# (the detection mechanism in XORP doesn't work anyway)
-unlink $log_conf;
+if ($file =~ /global/) {
+  my %defaults = ("global" => "/var/log/messages",
+                  "defaultauthlog" => "/var/log/auth.log");
 
-open my $out, '>', $log_conf
-    or exit 3;
-if ($set == 1) {
-  print $out <<EOF;
+  foreach my $conf_name (keys(%defaults)) {
+    $log_conf = "$cfg_dir/$conf_name";
+    write_config($log_conf, $set, $defaults{$conf_name}, $files, $size);
+  }
+} else {
+  write_config($log_conf, $set, $log_file, $files, $size);
+}
+
+sub write_config() {
+  my ($log_conf, $set, $log_file, $files, $size) = @_;
+  
+  # just remove it and make a new one below
+  # (the detection mechanism in XORP doesn't work anyway)
+  unlink $log_conf;
+
+  open my $out, '>', $log_conf
+      or exit 3;
+  if ($set == 1) {
+    print $out <<EOF;
 $log_file {
   missingok
   notifempty
@@ -46,6 +61,8 @@ $log_file {
 }
 EOF
 }
-close $out;
+  close $out;
+
+}
 
 exit 0;
