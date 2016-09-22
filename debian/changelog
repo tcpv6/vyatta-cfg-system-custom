@@ -5,6 +5,13 @@ vyatta-cfg-system (0.21.43+vyos1+helium34) unstable; urgency=low
 
  -- Jason Hendry <jhendry@mintel.com>  Thu, 22 Sep 2016 09:43:19 +0000
 
+vyatta-cfg-system (0.20.44+vyos1+helium34+mintel1) unstable; urgency=low
+
+  [ Francesco Ciocchetti ]
+  * Increase maximum MTU size on tunnels to 9000
+
+ -- Francesco Ciocchetti <fc@mintel.com>  Thu, 12 May 2016 08:24:19 +0200
+
 vyatta-cfg-system (0.20.43+vyos1+helium34) unstable; urgency=low
 
   [ Alex Harpin ]
