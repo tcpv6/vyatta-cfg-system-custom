@@ -1,11 +1,17 @@
-vyatta-cfg-system (0.21.43+vyos1+helium34) unstable; urgency=low
+vyatta-cfg-system (0.20.43+vyos1+helium34+mintel3) unstable; urgency=low
+
+  * Fix versioning to match new syntax
+
+ -- Jason Hendry <jhendry@mintel.com>  Thu, 8 Nov 2016 14:34:19 +0000
+
+vyatta-cfg-system (0.20.43+vyos1+helium34+mintel2) unstable; urgency=low
 
   * Rotating auth.log
   * Changing facility separator from a colon to a comma
 
  -- Jason Hendry <jhendry@mintel.com>  Thu, 22 Sep 2016 09:43:19 +0000
 
-vyatta-cfg-system (0.20.44+vyos1+helium34+mintel1) unstable; urgency=low
+vyatta-cfg-system (0.20.43+vyos1+helium34+mintel1) unstable; urgency=low
 
   [ Francesco Ciocchetti ]
   * Increase maximum MTU size on tunnels to 9000
